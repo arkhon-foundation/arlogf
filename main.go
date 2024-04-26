@@ -3,13 +3,17 @@ package arlogf
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/acarl005/stripansi"
 	"github.com/fatih/color"
 )
 
-type Logger struct {
-}
+var LastLog string
+var DumpLogsFolder string = ""
+
+type Logger struct{}
 
 type LogOptions struct {
 	id              string
@@ -45,7 +49,14 @@ func PrintWithOptions(options *LogOptions) {
 		)
 	}
 
-	fmt.Println(strings.Join(out, "\n"))
+	log := strings.Join(out, "\n")
+	LastLog = stripansi.Strip(log)
+
+	if DumpLogsFolder != "" {
+		dumplastlog(filepath.Join(DumpLogsFolder, filedate()))
+	}
+
+	fmt.Println(log)
 }
 
 func (l *Logger) Builder(id string) *LogOptions {
@@ -110,4 +121,19 @@ func (lo *LogOptions) Printf(format string, a ...any) {
 
 func (l *Logger) Space() {
 	fmt.Println()
+}
+
+func dumplastlog(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	if _, err := file.WriteString(LastLog + "\n"); err != nil {
+		return err
+	}
+
+	return nil
 }

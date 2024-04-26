@@ -18,3 +18,10 @@ func getdate() string {
 
 	return color.New(color.FgHiBlack).Sprintf("[%s | %s]", date, clock)
 }
+
+func filedate() string {
+	now := time.Now()
+	year, month, day := now.Date()
+
+	return fmt.Sprintf("log-%d_%d_%d.txt", month, day, year)
+}
